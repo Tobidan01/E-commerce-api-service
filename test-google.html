@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Google Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body>
+    <h2>Test Google Login</h2>
+
+    <div
+      id="g_id_onload"
+      data-client_id="873125544436-hm7m934st9o54peufad45qhuapp2pb7p.apps.googleusercontent.com"
+      data-callback="handleGoogleLogin"
+      data-auto_prompt="false"
+    ></div>
+
+    <div
+      class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="outline"
+      data-text="sign_in_with"
+      data-shape="rectangular"
+      data-width="280"
+    ></div>
+
+    <pre
+      id="output"
+      style="
+        margin-top: 20px;
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        color: #333;
+      "
+    ></pre>
+
+    <script>
+      async function handleGoogleLogin(googleResponse) {
+        const idToken = googleResponse.credential;
+
+        document.getElementById("output").textContent = "Sending to backend...";
+
+        const res = await fetch("/php-class/E-COMMERCE/api/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: idToken }),
+        });
+
+        const data = await res.json();
+        document.getElementById("output").textContent = JSON.stringify(
+          data,
+          null,
+          2,
+        );
+      }
+    </script>
+  </body>
+</html>

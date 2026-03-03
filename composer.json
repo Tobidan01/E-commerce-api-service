@@ -1,0 +1,16 @@
+{
+  "name": "tboy/ecommerce",
+  "description": "Production level PHP e-commerce backend",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }  
+
+  },
+  "require": {
+    "vlucas/phpdotenv": "^5.6",
+    "firebase/php-jwt": "^7.0",
+    "google/apiclient": "*"
+  }
+}
