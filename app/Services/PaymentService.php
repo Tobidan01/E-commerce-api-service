@@ -127,8 +127,7 @@ class PaymentService
     $reference = 'ECM-' . strtoupper(uniqid());
 
     $secret = $this->config['PAYSTACK_SECRET_KEY'];
-    $callback = $this->config['APP_URL'] . '/api/checkout/verify/' . $reference;
-
+    $callback = ($this->config['APP_URL'] ?? '') . '/api/checkout/verify/' . $reference;
     $response = $this->callPaystack(
       'https://api.paystack.co/transaction/initialize',
       [
