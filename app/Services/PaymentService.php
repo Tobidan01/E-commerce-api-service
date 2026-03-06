@@ -217,37 +217,71 @@ class PaymentService
    --------------------------------------------------------------*/
   public function handleWebhook(): array
   {
-    $secret = $this->config['PAYSTACK_SECRET_KEY'];
+    try {
+      $secret = $this->config['PAYSTACK_SECRET_KEY'] ?? '';
+      $payload = file_get_contents('php://input');
 
-    $payload = file_get_contents('php://input');
-    $signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? '';
-    $expected = hash_hmac('sha512', $payload, $secret);
+      if (empty($payload)) {
+        error_log("Webhook: Empty payload received");
+        return $this->success('No payload', 200);
+      }
 
-    if ($signature !== $expected) {
-      return $this->fail('Invalid webhook signature', 401);
+      $signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? '';
+      $expected = hash_hmac('sha512', $payload, $secret);
+
+      if ($signature !== $expected) {
+        error_log("Webhook: Invalid signature");
+        return $this->fail('Invalid webhook signature', 401);
+      }
+
+      $event = json_decode($payload, true);
+
+      if (!$event || !isset($event['event'])) {
+        error_log("Webhook: Invalid JSON payload");
+        return $this->success('Invalid payload', 200);
+      }
+
+      error_log("Webhook: Event received - " . $event['event']);
+
+      if ($event['event'] !== 'charge.success') {
+        return $this->success('Event ignored', 200);
+      }
+
+      $data = $event['data'];
+      $reference = $data['reference'] ?? '';
+
+      if (!$reference) {
+        error_log("Webhook: No reference in payload");
+        return $this->success('No reference', 200);
+      }
+
+      $pending = $this->payments->getPendingByReference($reference);
+
+      if (!$pending) {
+        error_log("Webhook: Reference not found - " . $reference);
+        return $this->success('Reference not found', 200);
+      }
+
+      if ($pending['status'] === 'success') {
+        error_log("Webhook: Already processed - " . $reference);
+        return $this->success('Already processed', 200);
+      }
+
+      $result = $this->processSuccessfulPayment(
+        (int) $pending['user_id'],
+        $reference,
+        $data
+      );
+
+      error_log("Webhook: Processed - order created for " . $reference);
+
+      return $result;
+
+    } catch (\Throwable $e) {
+      error_log("Webhook error: " . $e->getMessage());
+      return $this->success('Webhook received', 200); // Always return 200 to Paystack
     }
-
-    $event = json_decode($payload, true);
-
-    if ($event['event'] !== 'charge.success') {
-      return $this->success('Event ignored', 200);
-    }
-
-    $data = $event['data'];
-    $reference = $data['reference'];
-
-    $pending = $this->payments->getPendingByReference($reference);
-    if (!$pending) {
-      return $this->success('Reference not found', 200);
-    }
-
-    if ($pending['status'] === 'success') {
-      return $this->success('Already processed', 200);
-    }
-
-    return $this->processSuccessfulPayment($pending['user_id'], $reference, $data);
   }
-
   /*--------------------------------------------------------------
    | PROCESS SUCCESSFUL PAYMENT (MISSING METHOD ADDED)
    --------------------------------------------------------------*/
