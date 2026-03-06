@@ -40,8 +40,20 @@ class CheckoutController
   // GET /api/checkout/verify/{reference}
   public function verify(string $reference): void
   {
-    $user = JwtAuth::requireAuth();
-    $result = $this->service->verifyPayment((int) $user['sub'], $reference);
+    // Get user from token if available, otherwise get from payment record
+    $userId = null;
+
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if ($authHeader) {
+      try {
+        $user = JwtAuth::requireAuth();
+        $userId = (int) $user['sub'];
+      } catch (\Exception $e) {
+        // No token — will get userId from payment record
+      }
+    }
+
+    $result = $this->service->verifyPayment($userId, $reference);
     http_response_code($result['code']);
     Response::json($result['success'], $result['message'], $result['data'] ?? null);
   }

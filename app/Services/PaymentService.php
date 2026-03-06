@@ -171,7 +171,7 @@ class PaymentService
   /*--------------------------------------------------------------
    | VERIFY PAYSTACK PAYMENT
    --------------------------------------------------------------*/
-  public function verifyPayment(int $userId, string $reference): array
+  public function verifyPayment(?int $userId, string $reference): array
   {
     $secret = $this->config['PAYSTACK_SECRET_KEY'];
 
@@ -190,12 +190,21 @@ class PaymentService
       return $this->fail('Payment was not successful', 400);
     }
 
+    // Get pending payment to find userId if not provided
     $pending = $this->payments->getPendingByReference($reference);
+    if (!$pending) {
+      return $this->fail('Payment record not found', 404);
+    }
 
-    if ($pending && $pending['status'] === 'success' && $pending['order_id']) {
+    // Use userId from payment record if not provided
+    if (!$userId) {
+      $userId = (int) $pending['user_id'];
+    }
+
+    // Already processed
+    if ($pending['status'] === 'success' && $pending['order_id']) {
       return $this->success('Payment verified', 200, [
         'order_id' => $pending['order_id'],
-        'order' => $this->orders->getOrderWithItems($pending['order_id']),
         'total' => $pending['amount'],
         'paid_at' => $pending['paid_at']
       ]);
@@ -203,7 +212,6 @@ class PaymentService
 
     return $this->processSuccessfulPayment($userId, $reference, $data);
   }
-
   /*--------------------------------------------------------------
    | WEBHOOK
    --------------------------------------------------------------*/
