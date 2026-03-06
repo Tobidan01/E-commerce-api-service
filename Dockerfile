@@ -23,7 +23,7 @@ COPY . .
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Apache config
+# Apache config — allow .htaccess
 RUN echo '<Directory /var/www/html>\n\
     Options Indexes FollowSymLinks\n\
     AllowOverride All\n\
@@ -31,15 +31,15 @@ RUN echo '<Directory /var/www/html>\n\
     </Directory>' > /etc/apache2/conf-available/app.conf \
     && a2enconf app
 
-# Allow Apache to use PORT from environment
-RUN sed -i 's/Listen 80/Listen ${PORT:-80}/' /etc/apache2/ports.conf
-RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost *:${PORT:-80}>/' /etc/apache2/sites-available/000-default.conf
-
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Use shell form to expand $PORT at runtime
-CMD bash -c "sed -i \"s/Listen 80/Listen $PORT/\" /etc/apache2/ports.conf && sed -i \"s/*:80/*:$PORT/\" /etc/apache2/sites-available/000-default.conf && apache2-foreground"
+# Start script that sets port dynamically
+RUN echo '#!/bin/bash\n\
+    PORT="${PORT:-80}"\n\
+    sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf\n\
+    sed -i "s/*:80/*:$PORT/" /etc/apache2/sites-available/000-default.conf\n\
+    apache2-foreground' > /start.sh && chmod +x /start.sh
 
-EXPOSE 10000
+CMD ["/start.sh"]
