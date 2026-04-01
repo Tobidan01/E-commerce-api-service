@@ -1,13 +1,28 @@
 <?php
 declare(strict_types=1);
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
 
 require_once __DIR__ . '/vendor/autoload.php';
 
 use App\Core\Router;
 use App\Helpers\Response;
 use App\Helpers\JwtAuth;
+
+
+header("Access-Control-Allow-Origin: https://exclusive-e-commerce-inky.vercel.app/");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  http_response_code(200);
+  exit;
+}
+// JSON response
+header('Content-Type: application/json');
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Load config (handles .env locally + getenv on Render)
 $config = require __DIR__ . '/config.php';
