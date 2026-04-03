@@ -32,9 +32,25 @@ class AuthController
       return;
     }
 
+    // ✅ Check confirm password BEFORE hitting service
+    if (($input['password'] ?? '') !== ($input['confirm_password'] ?? '')) {
+      http_response_code(400);
+      Response::json(false, "Passwords do not match");
+      return;
+    }
+
+    // ❌ Remove confirm_password so it never reaches DB
+    unset($input['confirm_password']);
+
+    // Continue normal flow
     $result = $this->service->register($input);
+
     http_response_code($result['code']);
-    Response::json($result['success'], $result['message'], $result['data'] ?? null);
+    Response::json(
+      $result['success'],
+      $result['message'],
+      $result['data'] ?? null
+    );
   }
 
   public function login(): void

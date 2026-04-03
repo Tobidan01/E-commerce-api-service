@@ -49,7 +49,7 @@ class AuthService
       'first_name' => trim($data['first_name']),
       'last_name' => trim($data['last_name']),
       'email' => $email,
-      'password' => $data['password'],
+      'password' => password_hash($data['password'], PASSWORD_BCRYPT),
       'phone' => $data['phone'] ?? null
     ]);
 
