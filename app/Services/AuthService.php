@@ -57,6 +57,8 @@ class AuthService
     unset($user['password']);
 
     return $this->success("Registration successful", 201, $user);
+    error_log("DB HOST: " . $this->config['DB_HOST']);
+    error_log("DB NAME: " . $this->config['DB_NAME']);
   }
 
   public function login(array $data): array
