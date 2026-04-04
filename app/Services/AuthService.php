@@ -61,6 +61,10 @@ class AuthService
 
   public function login(array $data): array
   {
+    // 🔥 Normalize input FIRST
+    $data['email'] = strtolower(trim($data['email'] ?? ''));
+    $data['password'] = trim($data['password'] ?? '');
+
     $errors = Validator::required($data, ['email', 'password']);
     if (!empty($errors)) {
       return $this->fail("Validation failed", 400, $errors);
@@ -71,8 +75,7 @@ class AuthService
       return $this->fail($emailError, 400);
     }
 
-    $email = strtolower(trim($data['email']));
-    $user = $this->userModel->findByEmail($email);
+    $user = $this->userModel->findByEmail($data['email']);
 
     if (!$user || !password_verify($data['password'], $user['password'])) {
       return $this->fail("Invalid email or password", 401);
