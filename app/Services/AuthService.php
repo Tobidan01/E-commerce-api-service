@@ -21,9 +21,10 @@ class AuthService
     $db = (new Database($config))->connect();
     $this->userModel = new UsersModel($db);
   }
-
   public function register(array $data): array
   {
+    error_log("🔥 REGISTER HIT");
+
     $errors = Validator::required($data, ['first_name', 'last_name', 'email', 'password']);
     if (!empty($errors)) {
       return $this->fail("Validation failed", 400, $errors);
@@ -41,6 +42,10 @@ class AuthService
 
     $email = strtolower(trim($data['email']));
 
+    // 🔥 LOG DB CONFIG
+    error_log("DB HOST: " . ($this->config['DB_HOST'] ?? 'NULL'));
+    error_log("DB NAME: " . ($this->config['DB_NAME'] ?? 'NULL'));
+
     if ($this->userModel->findByEmail($email)) {
       return $this->fail("This email is already registered", 409);
     }
@@ -53,12 +58,17 @@ class AuthService
       'phone' => $data['phone'] ?? null
     ]);
 
+    // 🔥 LOG INSERT RESULT
+    error_log("INSERTED USER ID: " . json_encode($userId));
+
     $user = $this->userModel->findById($userId);
+
+    // 🔥 LOG FETCH RESULT
+    error_log("FETCHED USER: " . json_encode($user));
+
     unset($user['password']);
 
     return $this->success("Registration successful", 201, $user);
-    error_log("DB HOST: " . $this->config['DB_HOST']);
-    error_log("DB NAME: " . $this->config['DB_NAME']);
   }
 
   public function login(array $data): array
