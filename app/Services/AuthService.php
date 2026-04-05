@@ -40,11 +40,13 @@ class AuthService
       return $this->fail($passError, 400);
     }
 
+    // ✅ CLEAN INPUTS
     $email = strtolower(trim($data['email']));
+    $password = trim($data['password']);
 
-    // 🔥 LOG DB CONFIG
-    error_log("DB HOST: " . ($this->config['DB_HOST'] ?? 'NULL'));
-    error_log("DB NAME: " . ($this->config['DB_NAME'] ?? 'NULL'));
+    // 🔥 DEBUG
+    error_log("REGISTER PASSWORD RAW: >" . $password . "<");
+    error_log("REGISTER PASSWORD LENGTH: " . strlen($password));
 
     if ($this->userModel->findByEmail($email)) {
       return $this->fail("This email is already registered", 409);
@@ -54,16 +56,14 @@ class AuthService
       'first_name' => trim($data['first_name']),
       'last_name' => trim($data['last_name']),
       'email' => $email,
-      'password' => password_hash($data['password'], PASSWORD_BCRYPT),
+      'password' => password_hash($password, PASSWORD_BCRYPT), // ✅ HASH TRIMMED PASSWORD
       'phone' => $data['phone'] ?? null
     ]);
 
-    // 🔥 LOG INSERT RESULT
     error_log("INSERTED USER ID: " . json_encode($userId));
 
     $user = $this->userModel->findById($userId);
 
-    // 🔥 LOG FETCH RESULT
     error_log("FETCHED USER: " . json_encode($user));
 
     unset($user['password']);
@@ -73,12 +73,6 @@ class AuthService
 
   public function login(array $data): array
   {
-    // 🔥 Normalize input FIRST
-    $data['email'] = strtolower(trim($data['email'] ?? ''));
-    $data['password'] = trim($data['password'] ?? '');
-
-
-    $email = strtolower(trim($data['email']));
     $errors = Validator::required($data, ['email', 'password']);
     if (!empty($errors)) {
       return $this->fail("Validation failed", 400, $errors);
@@ -89,21 +83,28 @@ class AuthService
       return $this->fail($emailError, 400);
     }
 
-    $user = $this->userModel->findByEmail($data['email']);
+    // ✅ CLEAN INPUTS
+    $email = strtolower(trim($data['email']));
+    $password = trim($data['password']);
 
-    // 👇 ADD HERE
+    $user = $this->userModel->findByEmail($email);
+
+    // 🔥 DEBUG
     error_log("LOGIN EMAIL: " . $email);
     error_log("USER FROM DB: " . json_encode($user));
 
     if ($user) {
       error_log("DB PASSWORD HASH: " . $user['password']);
-      error_log("INPUT PASSWORD: " . $data['password']);
-      error_log("VERIFY RESULT: " . (password_verify($data['password'], $user['password']) ? 'TRUE' : 'FALSE'));
+      error_log("INPUT PASSWORD RAW: >" . $password . "<");
+      error_log("INPUT PASSWORD LENGTH: " . strlen($password));
+      error_log("VERIFY RESULT: " . (password_verify($password, $user['password']) ? 'TRUE' : 'FALSE'));
     }
 
-    if (!$user || !password_verify($data['password'], $user['password'])) {
+    // ✅ VERIFY TRIMMED PASSWORD
+    if (!$user || !password_verify($password, $user['password'])) {
       return $this->fail("Invalid email or password", 401);
     }
+
     if ($user['status'] === 'banned') {
       return $this->fail("Your account has been suspended", 403);
     }
@@ -117,7 +118,6 @@ class AuthService
       'user' => $user
     ]);
   }
-
   public function verifyToken(string $token): ?array
   {
     $secret = $this->config['JWT_SECRET'];
