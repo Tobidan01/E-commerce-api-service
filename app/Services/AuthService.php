@@ -77,6 +77,8 @@ class AuthService
     $data['email'] = strtolower(trim($data['email'] ?? ''));
     $data['password'] = trim($data['password'] ?? '');
 
+
+    $email = strtolower(trim($data['email']));
     $errors = Validator::required($data, ['email', 'password']);
     if (!empty($errors)) {
       return $this->fail("Validation failed", 400, $errors);
@@ -89,10 +91,19 @@ class AuthService
 
     $user = $this->userModel->findByEmail($data['email']);
 
+    // 👇 ADD HERE
+    error_log("LOGIN EMAIL: " . $email);
+    error_log("USER FROM DB: " . json_encode($user));
+
+    if ($user) {
+      error_log("DB PASSWORD HASH: " . $user['password']);
+      error_log("INPUT PASSWORD: " . $data['password']);
+      error_log("VERIFY RESULT: " . (password_verify($data['password'], $user['password']) ? 'TRUE' : 'FALSE'));
+    }
+
     if (!$user || !password_verify($data['password'], $user['password'])) {
       return $this->fail("Invalid email or password", 401);
     }
-
     if ($user['status'] === 'banned') {
       return $this->fail("Your account has been suspended", 403);
     }
