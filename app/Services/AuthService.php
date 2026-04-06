@@ -7,6 +7,7 @@ use App\Models\UsersModel;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use App\Helpers\Validator;
+use App\Helpers\Password;
 
 class AuthService
 {
@@ -21,10 +22,10 @@ class AuthService
     $db = (new Database($config))->connect();
     $this->userModel = new UsersModel($db);
   }
+
+
   public function register(array $data): array
   {
-    error_log("🔥 REGISTER HIT");
-
     $errors = Validator::required($data, ['first_name', 'last_name', 'email', 'password']);
     if (!empty($errors)) {
       return $this->fail("Validation failed", 400, $errors);
@@ -40,13 +41,7 @@ class AuthService
       return $this->fail($passError, 400);
     }
 
-    // ✅ CLEAN INPUTS
     $email = strtolower(trim($data['email']));
-    $password = trim($data['password']);
-
-    // 🔥 DEBUG
-    error_log("REGISTER PASSWORD RAW: >" . $password . "<");
-    error_log("REGISTER PASSWORD LENGTH: " . strlen($password));
 
     if ($this->userModel->findByEmail($email)) {
       return $this->fail("This email is already registered", 409);
@@ -56,16 +51,11 @@ class AuthService
       'first_name' => trim($data['first_name']),
       'last_name' => trim($data['last_name']),
       'email' => $email,
-      'password' => password_hash($password, PASSWORD_BCRYPT), // ✅ HASH TRIMMED PASSWORD
+      'password' => Password::hash($data['password']), // ✅ CLEAN
       'phone' => $data['phone'] ?? null
     ]);
 
-    error_log("INSERTED USER ID: " . json_encode($userId));
-
     $user = $this->userModel->findById($userId);
-
-    error_log("FETCHED USER: " . json_encode($user));
-
     unset($user['password']);
 
     return $this->success("Registration successful", 201, $user);
@@ -83,25 +73,10 @@ class AuthService
       return $this->fail($emailError, 400);
     }
 
-    // ✅ CLEAN INPUTS
     $email = strtolower(trim($data['email']));
-    $password = trim($data['password']);
-
     $user = $this->userModel->findByEmail($email);
 
-    // 🔥 DEBUG
-    error_log("LOGIN EMAIL: " . $email);
-    error_log("USER FROM DB: " . json_encode($user));
-
-    if ($user) {
-      error_log("DB PASSWORD HASH: " . $user['password']);
-      error_log("INPUT PASSWORD RAW: >" . $password . "<");
-      error_log("INPUT PASSWORD LENGTH: " . strlen($password));
-      error_log("VERIFY RESULT: " . (password_verify($password, $user['password']) ? 'TRUE' : 'FALSE'));
-    }
-
-    // ✅ VERIFY TRIMMED PASSWORD
-    if (!$user || !password_verify($password, $user['password'])) {
+    if (!$user || !Password::verify($data['password'], $user['password'])) {
       return $this->fail("Invalid email or password", 401);
     }
 
