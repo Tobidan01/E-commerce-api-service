@@ -18,11 +18,9 @@ class AuthService
   {
     $this->config = $config;
 
-    // Pass config into Database
     $db = (new Database($config))->connect();
     $this->userModel = new UsersModel($db);
   }
-
 
   public function register(array $data): array
   {
@@ -47,11 +45,14 @@ class AuthService
       return $this->fail("This email is already registered", 409);
     }
 
+    // Hash ONCE here
+    $hashedPassword = Password::hash($data['password']);
+
     $userId = $this->userModel->create([
       'first_name' => trim($data['first_name']),
       'last_name' => trim($data['last_name']),
       'email' => $email,
-      'password' => Password::hash($data['password']), // ✅ CLEAN
+      'password' => $hashedPassword,
       'phone' => $data['phone'] ?? null
     ]);
 
@@ -92,17 +93,6 @@ class AuthService
       'token' => $token,
       'user' => $user
     ]);
-  }
-  public function verifyToken(string $token): ?array
-  {
-    $secret = $this->config['JWT_SECRET'];
-
-    try {
-      $decoded = JWT::decode($token, new Key($secret, 'HS256'));
-      return (array) $decoded;
-    } catch (\Exception $e) {
-      return null;
-    }
   }
 
   private function generateJwt(array $user): string
