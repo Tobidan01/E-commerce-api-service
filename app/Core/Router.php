@@ -110,6 +110,9 @@ class Router
       echo json_encode([
         'success' => false,
         'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTraceAsString()
       ]);
     }
   }
