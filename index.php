@@ -3,10 +3,14 @@ declare(strict_types=1);
 error_log("REQUEST: " . $_SERVER['REQUEST_METHOD'] . " " . $_SERVER['REQUEST_URI']);
 
 require_once __DIR__ . '/vendor/autoload.php';
+$config = require __DIR__ . '/config.php';
 
 use App\Core\Router;
 use App\Helpers\Response;
 use App\Helpers\JwtAuth;
+use App\Services\WishlistService;
+
+new WishlistService($config);
 
 
 header("Access-Control-Allow-Origin: *");
