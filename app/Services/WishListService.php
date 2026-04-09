@@ -38,36 +38,37 @@ class WishlistService
   public function add(int $userId, int $productId): array
   {
     $product = $this->productsModel->getById($productId);
+
     if (!$product) {
       return $this->fail('Product not found', 404);
     }
 
     if ($this->wishlistModel->exists($userId, $productId)) {
-      return $this->fail('Product already in wishlist', 409);
+      return $this->fail('Already in wishlist', 409);
     }
 
     $added = $this->wishlistModel->add($userId, $productId);
+
     if (!$added) {
-      return $this->fail('Could not add to wishlist', 500);
+      return $this->fail('Database error', 500);
     }
 
-    return $this->success('Product added to wishlist', 200);
+    return $this->success('Added to wishlist', 201);
   }
-
   public function remove(int $userId, int $productId): array
   {
     if (!$this->wishlistModel->exists($userId, $productId)) {
-      return $this->fail('Product not in wishlist', 404);
+      return $this->fail('Not in wishlist', 404);
     }
 
-    $removed = $this->wishlistModel->remove($userId, $productId);
-    if (!$removed) {
-      return $this->fail('Could not remove from wishlist', 500);
+    $deleted = $this->wishlistModel->remove($userId, $productId);
+
+    if (!$deleted) {
+      return $this->fail('Database error', 500);
     }
 
-    return $this->success('Product removed from wishlist', 200);
+    return $this->success('Removed from wishlist', 200);
   }
-
   private function success(string $message, int $code, ?array $data = null): array
   {
     return ['success' => true, 'message' => $message, 'code' => $code, 'data' => $data];

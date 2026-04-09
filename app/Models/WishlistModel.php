@@ -16,19 +16,15 @@ class WishlistModel
 
   public function add(int $userId, int $productId): bool
   {
-    try {
-      $stmt = $this->db->prepare("
-                INSERT INTO wishlist (user_id, product_id, created_at)
-                VALUES (:user_id, :product_id, NOW())
-            ");
-      return $stmt->execute([
-        'user_id' => $userId,
-        'product_id' => $productId
-      ]);
-    } catch (PDOException $e) {
-      error_log("Wishlist add error: " . $e->getMessage());
-      return false;
-    }
+    $stmt = $this->db->prepare("
+      INSERT INTO wishlist (user_id, product_id, created_at)
+      VALUES (:user_id, :product_id, NOW())
+  ");
+
+    return $stmt->execute([
+      'user_id' => $userId,
+      'product_id' => $productId
+    ]);
   }
 
   public function remove(int $userId, int $productId): bool

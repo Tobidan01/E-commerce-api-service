@@ -19,26 +19,38 @@ class WishlistController
   public function index(): void
   {
     $user = JwtAuth::requireAuth();
+
     $items = $this->service->getAll((int) $user['sub']);
-    http_response_code(200);
-    Response::json(true, "Wishlist retrieved", $items);
+
+    Response::json(true, "Wishlist retrieved", $items, 200);
   }
 
   // POST /api/wishlist/{productId}
-  public function add(int $productId): void
+  public function add(int $id): void
   {
     $user = JwtAuth::requireAuth();
-    $result = $this->service->add((int) $user['sub'], $productId);
-    http_response_code($result['code']);
-    Response::json($result['success'], $result['message']);
+    $result = $this->service->add((int) $user['sub'], $id);
+
+    Response::json(
+      $result['success'],
+      $result['message'],
+      $result['data'],
+      $result['code']
+    );
   }
 
   // DELETE /api/wishlist/{productId}
   public function remove(int $productId): void
   {
     $user = JwtAuth::requireAuth();
+
     $result = $this->service->remove((int) $user['sub'], $productId);
-    http_response_code($result['code']);
-    Response::json($result['success'], $result['message']);
+
+    Response::json(
+      $result['success'],
+      $result['message'],
+      $result['data'],
+      $result['code']
+    );
   }
 }

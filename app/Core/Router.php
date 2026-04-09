@@ -83,7 +83,7 @@ class Router
       $route
     );
 
-    return '#^' . $route . '$#';
+    return '#^' . rtrim($route, '/') . '/?$#';
   }
 
   private function executeHandler(callable|array $handler, array $params): void
@@ -99,7 +99,7 @@ class Router
           return;
         }
 
-        $controller->$method(...array_values($params));
+        $controller->$method(...$params);
         return;
       }
 
