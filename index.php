@@ -72,6 +72,7 @@ require __DIR__ . '/routes/cartroutes.php';
 require __DIR__ . '/routes/orderroutes.php';
 require __DIR__ . '/routes/wishlistroutes.php';
 require __DIR__ . '/routes/paymentroutes.php';
+require __DIR__ . '/routes/adminroutes.php';
 
 // Dispatch
 $router->dispatch($path);

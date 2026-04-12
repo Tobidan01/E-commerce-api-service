@@ -68,27 +68,73 @@ class JwtAuth
   // ==================== PROTECT ROUTES ====================
   public static function requireAuth(): array
   {
-    $user = self::getAuthenticatedUser();
+    $token = self::getToken();
 
-    if (!$user) {
+    if (!$token) {
       http_response_code(401);
-      Response::json(false, "Unauthorized: Invalid or missing token");
+      Response::json(false, 'Unauthorized. Token missing');
       exit;
     }
 
-    return $user;
+    $decoded = self::decode($token);
+
+    if (!$decoded) {
+      http_response_code(401);
+      Response::json(false, 'Unauthorized. Invalid token');
+      exit;
+    }
+
+    return (array) $decoded;
   }
 
   public static function requireAdmin(): array
   {
-    $payload = self::requireAuth();
+    $token = self::getToken();
 
-    if (($payload['role'] ?? 'user') !== 'admin') {
-      http_response_code(403);
-      Response::json(false, "Forbidden: Admin access required");
+    if (!$token) {
+      http_response_code(401);
+      Response::json(false, 'Unauthorized. Admin token missing');
       exit;
     }
 
-    return $payload;
+    $decoded = self::decode($token);
+
+    if (!$decoded) {
+      http_response_code(401);
+      Response::json(false, 'Unauthorized. Invalid admin token');
+      exit;
+    }
+
+    if (!isset($decoded->is_admin) || !$decoded->is_admin) {
+      http_response_code(403);
+      Response::json(false, 'Forbidden. Admin access required');
+      exit;
+    }
+
+    return (array) $decoded;
+  }
+
+  private static function getToken(): ?string
+  {
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+
+    if (empty($authHeader) || strpos($authHeader, 'Bearer ') === false) {
+      return null;
+    }
+
+    return str_replace('Bearer ', '', $authHeader);
+  }
+
+  /**
+   * Decode JWT token
+   */
+  private static function decode(string $token): ?object
+  {
+    try {
+      $secret = $_ENV['JWT_SECRET'] ?? 'your-secret-key';
+      return JWT::decode($token, new Key($secret, 'HS256'));
+    } catch (\Exception $e) {
+      return null;
+    }
   }
 }
