@@ -19,7 +19,6 @@ class WishlistController
   public function index(): void
   {
     $user = JwtAuth::requireAuth();
-
     $result = $this->service->getAll((int) $user['sub']);
 
     Response::json(
@@ -30,12 +29,11 @@ class WishlistController
     );
   }
 
-  // POST /api/wishlist/{productId}
-  public function add(int $productId): void
+  // POST /api/wishlist/{id}
+  public function add(int $id): void
   {
     $user = JwtAuth::requireAuth();
-
-    $result = $this->service->add((int) $user['sub'], $productId);
+    $result = $this->service->add((int) $user['sub'], $id);
 
     Response::json(
       $result['success'],
@@ -45,12 +43,11 @@ class WishlistController
     );
   }
 
-  // DELETE /api/wishlist/{productId}
-  public function remove(int $productId): void
+  // DELETE /api/wishlist/{id}
+  public function remove(int $id): void
   {
     $user = JwtAuth::requireAuth();
-
-    $result = $this->service->remove((int) $user['sub'], $productId);
+    $result = $this->service->remove((int) $user['sub'], $id);
 
     Response::json(
       $result['success'],
