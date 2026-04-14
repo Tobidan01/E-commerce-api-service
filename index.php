@@ -1,13 +1,7 @@
 <?php
-
-
 declare(strict_types=1);
 error_log("REQUEST: " . $_SERVER['REQUEST_METHOD'] . " " . $_SERVER['REQUEST_URI']);
-var_dump([
-  'admin' => file_exists(__DIR__ . '/app/Services/AdminService.php'),
-  'wishlist' => file_exists(__DIR__ . '/app/Services/WishlistService.php'),
-]);
-die();
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 use App\Core\Router;
