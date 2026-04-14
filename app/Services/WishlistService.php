@@ -21,7 +21,14 @@ class WishlistService
 
     public function getAll(int $userId): array
     {
-        return $this->wishlistModel->getAll($userId);
+        $items = $this->wishlistModel->getAll($userId);
+
+        return [
+            'success' => true,
+            'message' => 'Wishlist retrieved',
+            'code' => 200,
+            'data' => $items
+        ];
     }
 
     public function add(int $userId, int $productId): array
@@ -50,13 +57,23 @@ class WishlistService
         return $this->success('Removed from wishlist', 200);
     }
 
-    private function success($msg, $code): array
+    private function success(string $message, int $code, $data = null): array
     {
-        return ['success' => true, 'message' => $msg, 'code' => $code];
+        return [
+            'success' => true,
+            'message' => $message,
+            'code' => $code,
+            'data' => $data
+        ];
     }
 
-    private function fail($msg, $code): array
+    private function fail(string $message, int $code): array
     {
-        return ['success' => false, 'message' => $msg, 'code' => $code];
+        return [
+            'success' => false,
+            'message' => $message,
+            'code' => $code,
+            'data' => null
+        ];
     }
 }

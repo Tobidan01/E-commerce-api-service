@@ -20,16 +20,22 @@ class WishlistController
   {
     $user = JwtAuth::requireAuth();
 
-    $items = $this->service->getAll((int) $user['sub']);
+    $result = $this->service->getAll((int) $user['sub']);
 
-    Response::json(true, "Wishlist retrieved", $items, 200);
+    Response::json(
+      $result['success'],
+      $result['message'],
+      $result['data'],
+      $result['code']
+    );
   }
 
   // POST /api/wishlist/{productId}
-  public function add(int $id): void
+  public function add(int $productId): void
   {
     $user = JwtAuth::requireAuth();
-    $result = $this->service->add((int) $user['sub'], $id);
+
+    $result = $this->service->add((int) $user['sub'], $productId);
 
     Response::json(
       $result['success'],
