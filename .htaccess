@@ -1,6 +1,14 @@
 Options -Indexes
+
 RewriteEngine On
 RewriteBase /
+
+# 🔥 VERY IMPORTANT: Pass Authorization header to PHP
+
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .\* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Normal routing
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
