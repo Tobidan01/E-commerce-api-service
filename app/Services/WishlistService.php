@@ -32,19 +32,22 @@ class WishlistService
     }
 
     public function add(int $userId, int $productId): array
-    {
-        if (!$this->productsModel->getById($productId)) {
-            return $this->fail('Product not found', 404);
-        }
-
-        if ($this->wishlistModel->exists($userId, $productId)) {
-            return $this->fail('Already in wishlist', 409);
-        }
-
-        $this->wishlistModel->add($userId, $productId);
-
-        return $this->success('Added to wishlist', 201);
+{
+    if (!$this->productsModel->getById($productId)) {
+        return $this->fail('Product not found', 404);
     }
+
+    if ($this->wishlistModel->exists($userId, $productId)) {
+        return $this->fail('Already in wishlist', 409);
+    }
+
+    $this->wishlistModel->add($userId, $productId);
+
+    // Fetch the product to return as data
+    $product = $this->productsModel->getById($productId);
+
+    return $this->success('Added to wishlist', 201, $product);
+}
 
     public function remove(int $userId, int $productId): array
     {
