@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Services\ProductsService;
 use App\Helpers\Response;
-use App\Helpers\JwtAuth;
 
 class ProductsController
 {
@@ -15,15 +14,11 @@ class ProductsController
     $this->service = $service;
   }
 
-  // GET /api/products
   public function index(): void
   {
-    $result = $this->service->getAll();
-    http_response_code(200);
-    Response::json(true, "Products retrieved", $result);
+    Response::json(true, "Products retrieved", $this->service->getAll());
   }
 
-  // GET /api/products/list?page=1&limit=10&sort=newest&search=&category=
   public function listProducts(): void
   {
     $result = $this->service->listProducts($_GET);
@@ -31,66 +26,59 @@ class ProductsController
     Response::json($result['success'], $result['message'], $result['data']);
   }
 
-  // GET /api/products/flash-sales
   public function flashSales(): void
   {
-    $result = $this->service->getFlashSales();
-    http_response_code(200);
-    Response::json(true, "Flash sales retrieved", $result);
+    Response::json(true, "Flash sales", $this->service->getFlashSales());
   }
 
-  // GET /api/products/id/{id}
   public function getById(int $id): void
   {
-    $result = $this->service->getById($id);
+    $product = $this->service->getById($id);
 
-    if (!$result) {
+    if (!$product) {
       http_response_code(404);
-      Response::json(false, "Product not found");
+      Response::json(false, "Not found");
       return;
     }
 
-    http_response_code(200);
-    Response::json(true, "Product retrieved", $result);
+    Response::json(true, "Product", $product);
   }
 
-  // GET /api/products/slug/{slug}
   public function getBySlug(string $slug): void
   {
-    $result = $this->service->getBySlug($slug);
+    $product = $this->service->getBySlug($slug);
 
-    if (!$result) {
+    if (!$product) {
       http_response_code(404);
-      Response::json(false, "Product not found");
+      Response::json(false, "Not found");
       return;
     }
 
-    http_response_code(200);
-    Response::json(true, "Product retrieved", $result);
+    Response::json(true, "Product", $product);
   }
 
-  // POST /api/products (admin only)
   public function create(): void
   {
     $input = json_decode(file_get_contents("php://input"), true);
     $result = $this->service->create($input ?? []);
+
     http_response_code($result['code']);
-    Response::json($result['success'], $result['message'], $result['data'] ?? null);
+    Response::json($result['success'], $result['message'], $result['data']);
   }
 
-  // PUT /api/products/{id} (admin only)
   public function update(int $id): void
   {
     $input = json_decode(file_get_contents("php://input"), true);
     $result = $this->service->update($id, $input ?? []);
+
     http_response_code($result['code']);
-    Response::json($result['success'], $result['message'], $result['data'] ?? null);
+    Response::json($result['success'], $result['message'], $result['data']);
   }
 
-  // DELETE /api/products/{id} (admin only)
   public function delete(int $id): void
   {
     $result = $this->service->delete($id);
+
     http_response_code($result['code']);
     Response::json($result['success'], $result['message']);
   }

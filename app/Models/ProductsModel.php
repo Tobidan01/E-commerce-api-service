@@ -306,7 +306,7 @@ class ProductsModel
       ':slug' => $data['slug'],
       ':description' => $data['description'] ?? null,
       ':short_description' => $data['short_description'] ?? null,
-      ':price' => $data['price'],
+      ':price' => $data['price'] ?? 0,
       ':compare_price' => $data['compare_price'] ?? null,
       ':cost_price' => $data['cost_price'] ?? null,
       ':stock' => $data['stock'] ?? 0,
