@@ -9,6 +9,7 @@ use App\Models\CartModel;
 use App\Models\OrderHistoryModel;
 use App\Models\ProductsModel;
 use App\Helpers\Validator;
+use App\Helpers\JwtAuth;
 
 class OrderService
 {
@@ -125,6 +126,7 @@ class OrderService
 
   public function updateStatus(int $orderId, ?string $status): array
   {
+    JwtAuth::requireAdmin(); // 🔥 CRITICAL
     if (!$status) {
       return $this->fail('Status is required', 400);
     }

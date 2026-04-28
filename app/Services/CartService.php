@@ -94,26 +94,46 @@ class CartService
   // UPDATE ITEM
   public function updateItem(int $userId, int $itemId, array $data): array
   {
-    if (empty($data['quantity'])) {
+    // Ensure quantity is provided
+    if (!isset($data['quantity'])) {
       return $this->fail('Quantity is required', 400);
     }
 
-    $exists = $this->model->getItem($itemId);
+    // Ensure quantity is numeric
+    if (!is_numeric($data['quantity'])) {
+      return $this->fail('Quantity must be a number', 400);
+    }
 
+    $quantity = (int) $data['quantity'];
+
+    // Ensure quantity is positive
+    if ($quantity <= 0) {
+      return $this->fail('Quantity must be greater than zero', 400);
+    }
+
+    // Check if item exists and belongs to the user
+    $exists = $this->model->getItem($itemId);
     if (!$exists || (int) $exists['user_id'] !== $userId) {
       return $this->fail('Cart item not found', 404);
     }
 
+    // Check product stock
     $product = $this->productsModel->getById((int) $exists['product_id']);
+    if (!$product) {
+      return $this->fail('Product not found', 404);
+    }
 
-    if ((int) $data['quantity'] > $product['stock']) {
+    if ($quantity > (int) $product['stock']) {
       return $this->fail('Not enough stock available', 400);
     }
 
-    $this->model->updateItem($itemId, (int) $data['quantity']);
+    // Update item
+    $this->model->updateItem($itemId, $quantity);
 
+    // Return updated item
     return $this->success('Cart item updated', 200, $this->model->getItem($itemId));
   }
+
 
   // REMOVE ITEM
   public function removeItem(int $userId, int $itemId): array

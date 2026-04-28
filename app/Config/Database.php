@@ -40,8 +40,7 @@ class Database
 
     // Add SSL if configured
     if (!empty($this->config['DB_SSL_CA'])) {
-      $options[PDO::MYSQL_ATTR_SSL_CA] = $this->config['DB_SSL_CA'];
-      // Optional: enforce verification
+      $options[PDO::MYSQL_ATTR_SSL_CA] = realpath(__DIR__ . '/../../' . $this->config['DB_SSL_CA']);      // Optional: enforce verification
       $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
     }
 

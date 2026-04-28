@@ -6,6 +6,7 @@ use App\Config\Database;
 use App\Models\ProductsModel;
 use App\Models\CategoryModel;
 use App\Helpers\Validator;
+use App\Helpers\JwtAuth;
 
 class ProductsService
 {
@@ -79,6 +80,9 @@ class ProductsService
    =============================== */
   public function create(array $data): array
   {
+
+    JwtAuth::requireAdmin(); // ✅ enforce admin here
+
     $errors = Validator::required($data, ['name', 'price', 'stock', 'category_id', 'description']);
     if ($errors)
       return $this->fail('Validation failed', 400, $errors);
@@ -110,6 +114,7 @@ class ProductsService
    =============================== */
   public function update(int $id, array $data): array
   {
+    JwtAuth::requireAdmin(); // ✅ enforce admin here
     $existing = $this->model->getById($id);
     if (!$existing)
       return $this->fail('Product not found', 404);
@@ -142,6 +147,7 @@ class ProductsService
    =============================== */
   public function delete(int $id): array
   {
+    JwtAuth::requireAdmin(); // ✅ enforce admin here
     if (!$this->model->getById($id)) {
       return $this->fail('Product not found', 404);
     }
